@@ -1,0 +1,19 @@
+---
+# Source: harbor/templates/portal/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "kccr-harbor-portal"
+  labels:
+    heritage: Helm
+    release: kccr
+    chart: harbor
+    app: "harbor"
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    release: kccr
+    app: "harbor"
+    component: portal

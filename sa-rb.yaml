@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-app: harbor
+  name: kccr-sa
+  namespace: kccr-harbor
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kccr-psp
+  namespace: kccr-harbor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: privileged-psp
+subjects:
+- kind: ServiceAccount
+  name: kccr-sa
+  namespace: kccr-harbor

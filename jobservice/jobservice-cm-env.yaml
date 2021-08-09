@@ -1,0 +1,20 @@
+---
+# Source: harbor/templates/jobservice/jobservice-cm-env.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "kccr-harbor-jobservice-env"
+  labels:
+    heritage: Helm
+    release: kccr
+    chart: harbor
+    app: "harbor"
+data:
+  CORE_URL: "http://kccr-harbor-core:80"
+  TOKEN_SERVICE_URL: "http://kccr-harbor-core:80/service/token"
+  REGISTRY_URL: "http://kccr-harbor-registry:5000"
+  REGISTRY_CONTROLLER_URL: "http://kccr-harbor-registry:8080"
+  REGISTRY_CREDENTIAL_USERNAME: "harbor_registry_user"
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: "kccr-harbor-core,kccr-harbor-jobservice,kccr-harbor-database,kccr-harbor-chartmuseum,kccr-harbor-notary-server,kccr-harbor-notary-signer,kccr-harbor-registry,kccr-harbor-portal,kccr-harbor-trivy,kccr-harbor-exporter,127.0.0.1,localhost,.local,.internal"

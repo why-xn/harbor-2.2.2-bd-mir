@@ -1,0 +1,115 @@
+---
+# Source: harbor/templates/core/core-dpl.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kccr-harbor-core
+  labels:
+    heritage: Helm
+    release: kccr
+    chart: harbor
+    app: "harbor"
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: kccr
+      app: "harbor"
+      component: core
+  template:
+    metadata:
+      labels:
+        release: kccr
+        app: "harbor"
+        component: core
+      annotations:
+        checksum/configmap: 2e4582d3a6d7fff822648fd90069f57c1391b5100b51f9b76263880aca9c12d3
+        checksum/secret: 8d911e0658a1be306f2e2ebe35c3bec9a92b09bd95404dc513093ae6fa456b3e
+        checksum/secret-jobservice: 4d5b0825400a08fe363de4582521c48569b8458f52a1cbd23da348e54ec643ea
+    spec:
+      securityContext:
+        runAsUser: 10000
+        fsGroup: 10000
+      serviceAccountName: kccr-sa
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: core
+        image: goharbor/harbor-core:v2.3.0
+        imagePullPolicy: IfNotPresent
+        startupProbe:
+          httpGet:
+            path: /api/v2.0/ping
+            scheme: HTTP
+            port: 8080
+          failureThreshold: 360
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/v2.0/ping
+            scheme: HTTP
+            port: 8080
+          failureThreshold: 2
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v2.0/ping
+            scheme: HTTP
+            port: 8080
+          failureThreshold: 2
+          periodSeconds: 10
+        envFrom:
+        - configMapRef:
+            name: "kccr-harbor-core"
+        - secretRef:
+            name: "kccr-harbor-core"
+        env:
+          - name: CORE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: kccr-harbor-core
+                key: secret
+          - name: JOBSERVICE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: "kccr-harbor-jobservice"
+                key: JOBSERVICE_SECRET
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /etc/core/app.conf
+          subPath: app.conf
+        - name: secret-key
+          mountPath: /etc/core/key
+          subPath: key
+        - name: token-service-private-key
+          mountPath: /etc/core/private_key.pem
+          subPath: tls.key
+        - name: ca-download
+          mountPath: /etc/core/ca
+        - name: psc
+          mountPath: /etc/core/token
+      volumes:
+      - name: config
+        configMap:
+          name: kccr-harbor-core
+          items:
+            - key: app.conf
+              path: app.conf
+      - name: secret-key
+        secret:
+          secretName: kccr-harbor-core
+          items:
+            - key: secretKey
+              path: key
+      - name: token-service-private-key
+        secret:
+          secretName: kccr-harbor-core
+      - name: ca-download
+        secret:
+          secretName: wild-certificate-bd-mir-1-secret
+      - name: psc
+        emptyDir: {}
